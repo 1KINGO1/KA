@@ -24,4 +24,17 @@ rl.on("line", function (line) {
 				lineIndex
 			]);
 		}
+
+		// Bubble Sort
+		for (let i = 0; i < entries.length; i++) {
+			for (let j = 0; j < entries.length - 1; j++) {
+				if (entries[j][0] > entries[j + 1][0]) {
+					const temp = entries[j];
+					entries[j] = entries[j + 1];
+					entries[j + 1] = temp;
+				}
+			}
+		}
+
+		console.log(entries.map(entry => entry.join(' ')).join("\n"));
 	})
