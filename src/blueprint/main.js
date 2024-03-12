@@ -19,9 +19,9 @@ rl.on("line", function (line) {
 			const line = lines[lineIndex];
 			const matches = line.match(new RegExp(SUBSTRING, "g")) || [];
 			const matchedLength = matches.length;
-			entries.push(
+			entries.push([
 				matchedLength,
 				lineIndex
-			);
+			]);
 		}
 	})
