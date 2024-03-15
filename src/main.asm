@@ -1,7 +1,8 @@
 .model small
 .stack 100h
 .data
-    
+    oneChar db ?
+
 .code
 main PROC
     ; ds = PSP
@@ -18,6 +19,6 @@ main PROC
         int 21h
         dec cl
         jmp write_char
-write_end:
+    write_end:
 main ENDP
 END main
