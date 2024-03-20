@@ -37,6 +37,7 @@ main PROC
         ; Повторення циклу читання
         jmp read_next
     read_end:
+    
         mov ah, 4Ch       ; Функція 4Ch - вихід з програми
         int 21h
 main ENDP
