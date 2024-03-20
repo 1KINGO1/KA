@@ -1,3 +1,5 @@
+;; Щоб запустити, змінити settings.json два рази
+
 .model small
 .stack 100h
 .data
@@ -34,7 +36,16 @@ main PROC
         mov ah, 02h       ; Функція 02h - виведення символу
         mov dl, [oneChar] ; Завантаження символу для виводу
         int 21h           ; Виклик системного переривання для виводу
+
+        cmp byte ptr [oneChar], 0Ah  ; Compare oneChar with ASCII code for newline
+        jz new_line
+
         ; Повторення циклу читання
+        jmp read_next
+    new_line:
+        mov ah, 02h       ; Функція 02h - виведення символу
+        mov dl, "-" ; Завантаження символу для виводу 
+        int 21h           ; Виклик системного переривання для виводу
         jmp read_next
     read_end:
     
