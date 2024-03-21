@@ -4,24 +4,40 @@
 .stack 100h
 .data
     oneChar db ?
-
+    searchParam db 255 dup(?)
+    currentLine db 255 dup(?)
 .code
 main PROC
     ; ds = PSP
     ; copy param
     xor ch,ch
     mov cl, ds:[80h]   ; at offset 80h length of "args"
+    mov si, 0
+
     write_char:
+        push si
         test cl, cl
-        jz read_next
+        jz step_2
         mov si, 81h        ; at offest 81h first char of "args"
         add si, cx
-        mov ah, 02h
         mov dl, ds:[si]
+        pop si
+        mov [searchParam + si], dl
+
+        mov ah, 02h
+        mov dl, [searchParam + si]
         int 21h
+
+        inc si
+        ; stdin - дескриптор вводу (стандартний ввід)
+        ; mov ah, 02h
+        ; mov dl, ds:[si]
+        ; int 21h
         dec cl
         jmp write_char
-
+    step_2: 
+        mov si, 0
+        jmp read_next
     read_next:
         mov ah, 3Fh       ; Функція 3Fh - зчитування з файлу або пристрою
         mov bx, 0         ; stdin - дескриптор вводу (стандартний ввід)
@@ -43,9 +59,7 @@ main PROC
         ; Повторення циклу читання
         jmp read_next
     new_line:
-        mov ah, 02h       ; Функція 02h - виведення символу
-        mov dl, "-" ; Завантаження символу для виводу 
-        int 21h           ; Виклик системного переривання для виводу
+        ; New line 
         jmp read_next
     read_end:
     
