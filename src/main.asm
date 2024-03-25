@@ -27,40 +27,48 @@ main PROC
         mov ah, 02h
         mov dl, [searchParam + si]
         int 21h
-
+        
         inc si
-        ; stdin - дескриптор вводу (стандартний ввід)
-        ; mov ah, 02h
-        ; mov dl, ds:[si]
-        ; int 21h
         dec cl
         jmp write_char
+
+        
     step_2: 
         mov si, 0
         jmp read_next
+
+
     read_next:
-        mov ah, 3Fh       ; Функція 3Fh - зчитування з файлу або пристрою
-        mov bx, 0         ; stdin - дескриптор вводу (стандартний ввід)
-        mov cx, 1         ; Читати 1 байт
-        mov dx, offset oneChar ; Покажчик на змінну для зберігання одного символу
-        int 21h           ; Виклик системного переривання для читання
-        ; Перевірка чи досягнуто кінця файлу (EOF)
-        or ax, ax         ; Перевірка на те, чи рівне ax нулю (кінець файлу)
-        jz read_end    ; Якщо ax = 0, це означає, що був досягнутий кінець файлу
+        mov ah, 3Fh       ; Function 3Fh - read from a file or device
+        mov bx, 0         ; stdin - input descriptor (standard input)
+        mov cx, 1         ; Read 1 byte
+        mov dx, offset oneChar ; Pointer to variable for storing one character
+        int 21h           ; Call system interrupt for reading
+        
+        ; Check if the end of the file (EOF) has been reached
+        or ax, ax         ; Check if ax is zero (end of file)
+        jz read_end       ; If ax = 0, it means the end of the file was reached
 
-        ; Вивід символу, який було прочитано
-        mov ah, 02h       ; Функція 02h - виведення символу
-        mov dl, [oneChar] ; Завантаження символу для виводу
-        int 21h           ; Виклик системного переривання для виводу
+        mov al, [oneChar] ; Load the read character into AL
+        mov [currentLine + si], al ; Save AL (the character) into the buffer at [currentLine + si]
 
-        cmp byte ptr [oneChar], 0Ah  ; Compare oneChar with ASCII code for newline
-        jz new_line
+        mov dl, [currentLine + si]        ; Move the character into DL for printing
+        mov ah, 02h                       ; Function 02h - output of a character
+        int 21h                           ; Call system interrupt for output
 
-        ; Повторення циклу читання
-        jmp read_next
+        inc si ; Move to the next position in the buffer for the next character
+
+        cmp al, 0Ah       ; Compare the character with ASCII code for newline
+        jz new_line       ; If it's a newline, handle accordingly (new_line code not shown here)
+
+        jmp read_next     ; Repeat the read loop
+    
+    
     new_line:
         ; New line 
         jmp read_next
+
+
     read_end:
     
         mov ah, 4Ch       ; Функція 4Ch - вихід з програми
