@@ -24,9 +24,9 @@ main PROC
         pop si
         mov [searchParam + si], dl
 
-        mov ah, 02h
-        mov dl, [searchParam + si]
-        int 21h
+        ; mov ah, 02h
+        ; mov dl, [searchParam + si]
+        ; int 21h
         
         inc si
         dec cl
@@ -63,15 +63,65 @@ main PROC
 
         jmp read_next     ; Repeat the read loop
     
-    
+    show_line_info:
+        mov di, offset currentLine
+        call str_length
+        mov ax, cx
+        call print_number
+        ret
+
     new_line:
-        ; New line 
+        call show_line_info
+        mov si, 0
         jmp read_next
 
-
     read_end:
-    
+        call show_line_info
         mov ah, 4Ch       ; Функція 4Ch - вихід з програми
         int 21h
 main ENDP
+
+
+
+
+str_length PROC
+    push    ax              ; Save modified registers
+    push    di
+
+    xor     al, al          ; al <- search char (null)
+    mov     cx, 0ffffh      ; cx <- maximum search depth
+    cld                     ; Auto-increment di
+    repnz   scasb           ; Scan for al while [di]<>null & cx<>0
+    not     cx              ; Ones complement of cx
+    dec     cx              ;  minus 1 equals string length
+
+    pop     di              ; Restore registers
+    pop     ax
+    ret                     ; Return to caller    
+str_length ENDP
+
+
+
+print_number PROC
+    mov  bl, 10
+    mov  cx, sp
+    loop_count:
+        xor  ah, ah
+        div  bl
+        push ax           ; Remainder is in AH, don't care about AL
+        test al, al
+        jnz  loop_count
+    loop_print:
+        pop  ax           ; Remainder is in AH, don't care about AL
+        mov  dl, ah
+        add  dl, '0'
+        mov  ah, 02h
+        int  21h
+        cmp  sp, cx
+        jb   loop_print
+    ret
+print_number ENDP
+
+
+
 END main
