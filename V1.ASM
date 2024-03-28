@@ -9,19 +9,20 @@
 ORG 0100h
 start:
 
-    xor ch,ch
-    mov cl, ds:[80h]   ; at offset 80h length of "args"
-    mov si, 0
+    xor ch,ch ; Встановлюємо ch (верхній регістр) нулем
+    mov cl, ds:[80h] ; Завантажуємо значення росташоване в пам'яті за адресую (це і є командний аргумент)
+    mov si, 0 ; Задаєм початковий індекс
 
+    ; Читаємо командний аргумент
     write_char:
-        push si
-        test cl, cl
-        jz step_2
-        mov si, 81h        ; at offest 81h first char of "args"
+        push si ; Зберігаємо індекс (бо він буде використовуватись далі в коді і нам не треба втратити значення)
+        test cl, cl ; Перевіряємо чи cl = 0
+        jz step_2 ; Якщо так, переходим на наступну фазу
+        mov si, 81h ; Записуємо в si адресу 81h (перша після 80h)
         add si, cx
         mov dl, ds:[si]
-        pop si
-        mov [searchParam + si], dl
+        pop si ; Повертаємо з стеку індекс
+        mov [searchParam + si], dl ; Записуємо в масив searchParam значення з командного аргументу
 
         ; mov ah, 02h
         ; mov dl, [searchParam + si]
@@ -33,43 +34,45 @@ start:
         ; int 21h
         ; inc si
 
-        inc si
-        dec cl
+        inc si ; Збільшуємо індекс 
+        dec cl ; Зменшуємо лічильник аргументів
         jmp write_char
 
         
     step_2: 
-        mov si, 0
+        mov si, 0 
+
         mov ah, 02h
-        mov dl, 0Ah
+        mov dl, 0Ah ; Виводимо розділитель (перенос строки)
         int 21h
+
         jmp read_next
 
 
     read_next:
-        mov ah, 3Fh       ; Function 3Fh - read from a file or device
-        mov bx, 0         ; stdin - input descriptor (standard input)
-        mov cx, 1         ; Read 1 byte
-        mov dx, offset oneChar ; Pointer to variable for storing one character
-        int 21h           ; Call system interrupt for reading
+        mov ah, 3Fh ; Функція 3Fh - читання з файлу
+        mov bx, 0 ; stdin - input descriptor (standard input)
+        mov cx, 1 ; Читання 1 байту
+        mov dx, offset oneChar ; Вказівник на змінну для зберігання прочитаного байту
+        int 21h ; Виклик системного переривання для читання
         
         ; Check if the end of the file (EOF) has been reached
         or ax, ax         ; Check if ax is zero (end of file)
         jz read_end       ; If ax = 0, it means the end of the file was reached
 
-        mov al, [oneChar] ; Load the read character into AL
-        mov [currentLine + si], al ; Save AL (the character) into the buffer at [currentLine + si]
+        mov al, [oneChar] ; Записуємо прочитаний символ в AL
+        mov [currentLine + si], al ; Додаємо його в масив 
 
-        mov dl, [currentLine + si]        ; Move the character into DL for printing
-        mov ah, 02h                       ; Function 02h - output of a character
-        int 21h                           ; Call system interrupt for output
+        mov dl, [currentLine + si]  
+        mov ah, 02h ; Виводимо цей елемент масиву      
+        int 21h                           
 
-        inc si ; Move to the next position in the buffer for the next character
+        inc si
 
-        cmp al, 0Ah       ; Compare the character with ASCII code for newline
-        jz find_string_count_preparation       ; If it's a newline, handle accordingly (new_line code not shown here)
+        cmp al, 0Ah ; Порівнюємо символ з символом переносу строки
+        jz find_string_count_preparation ; Перепригуємо на наступну фазу, якщо в нас кінець строки
 
-        jmp read_next     ; Repeat the read loop
+        jmp read_next ; Повторюємо цикл читання, якщо ні
 
     find_string_count_preparation:
         mov ax, 0
@@ -350,16 +353,16 @@ print_number PROC
     mov  bl, 10
     mov  cx, sp
     loop_count:
-        xor  ah, ah
-        div  bl
-        push ax           ; Remainder is in AH, don't care about AL
-        test al, al
+        xor  ah, ah ; ah = 0
+        div  bl ; Ділимо значення в ax на bl (на 10) і записуємо результат в al, а остачу в ah
+        push ax
+        test al, al ; Перевіряємо чи дорівнює частка 0, якщо вона 0, значить число розкладено повністю
         jnz  loop_count
     loop_print:
-        pop  ax           ; Remainder is in AH, don't care about AL
-        mov  dl, ah
-        add  dl, '0'
-        mov  ah, 02h
+        pop  ax
+        mov  dl, ah ; dl = остача від ділення
+        add  dl, '0' ; Додає асіі код символу 0 щоб отримати код цифри
+        mov  ah, 02h ; виводимо і повторюємо
         int  21h
         cmp  sp, cx
         jb   loop_print
