@@ -1,4 +1,7 @@
 
 === test1 ===
-aaaaaaa bbaa
-12aaz a12
+
+aaaaa bbaaaaaaaaaaa
+AB18C1
+aaz a
+AB2C1
